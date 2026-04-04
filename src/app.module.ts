@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsuariosModule } from './usuarios/usuarios.module';
-import { ClientesModule } from './clientes/clientes.module';
-import { ProveedoresModule } from './proveedores/proveedores.module';
-import { EmpresasModule } from './empresas/empresas.module';
-import { CategoriasModule } from './categorias/categorias.module';
-import { ProductosModule } from './productos/productos.module';
-import { CarritosModule } from './carritos/carritos.module';
-import { CarritoItemsModule } from './carrito_items/carrito_items.module';
-import { OrdenesModule } from './ordenes/ordenes.module';
-import { OrdenItemsModule } from './orden_items/orden_items.module';
-import { OrdenProveedoresModule } from './orden_proveedores/orden_proveedores.module';
-import { PagosModule } from './pagos/pagos.module';
+import { UsuariosModule } from './modules/usuarios/usuarios.module';
+import { ClientesModule } from './modules/clientes/clientes.module';
+import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+import { EmpresasModule } from './modules/empresas/empresas.module';
+import { CategoriasModule } from './modules/categorias/categorias.module';
+import { ProductosModule } from './modules/productos/productos.module';
+import { CarritosModule } from './modules/carritos/carritos.module';
+import { CarritoItemsModule } from './modules/carrito_items/carrito_items.module';
+import { OrdenesModule } from './modules/ordenes/ordenes.module';
+import { OrdenItemsModule } from './modules/orden_items/orden_items.module';
+import { OrdenProveedoresModule } from './modules/orden_proveedores/orden_proveedores.module';
+import { PagosModule } from './modules/pagos/pagos.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
