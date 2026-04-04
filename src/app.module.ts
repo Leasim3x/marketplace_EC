@@ -13,6 +13,7 @@ import { OrdenesModule } from './ordenes/ordenes.module';
 import { OrdenItemsModule } from './orden_items/orden_items.module';
 import { OrdenProveedoresModule } from './orden_proveedores/orden_proveedores.module';
 import { PagosModule } from './pagos/pagos.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [UsuariosModule,
@@ -26,7 +27,10 @@ import { PagosModule } from './pagos/pagos.module';
     OrdenesModule,
     OrdenItemsModule,
     OrdenProveedoresModule,
-    PagosModule
+    PagosModule,
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
