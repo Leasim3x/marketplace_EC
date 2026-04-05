@@ -13,10 +13,30 @@ import { OrdenesModule } from './modules/ordenes/ordenes.module';
 import { OrdenItemsModule } from './modules/orden_items/orden_items.module';
 import { OrdenProveedoresModule } from './modules/orden_proveedores/orden_proveedores.module';
 import { PagosModule } from './modules/pagos/pagos.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [UsuariosModule,
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USER'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        autoEntities: true,
+        synchronize: true,
+      }),
+    }),
+    UsuariosModule,
     ClientesModule,
     ProveedoresModule,
     EmpresasModule,
@@ -28,9 +48,6 @@ import { ConfigModule } from '@nestjs/config';
     OrdenItemsModule,
     OrdenProveedoresModule,
     PagosModule,
-    ConfigModule.forRoot({
-      isGlobal: true
-    }),
   ],
   controllers: [AppController],
   providers: [AppService],
