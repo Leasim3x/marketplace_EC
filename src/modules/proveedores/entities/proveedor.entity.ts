@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Empresa } from 'src/modules/empresas/entities/empresa.entity';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('proveedores')
 export class Proveedor {
@@ -26,5 +27,9 @@ export class Proveedor {
 
     @Column({ default: true })
     activo: boolean;
+
+    @OneToMany(() => Empresa, empresa => empresa.proveedor)
+    @JoinColumn({ name: 'id_empresa' })
+    empresas: Empresa[];
 
 }
