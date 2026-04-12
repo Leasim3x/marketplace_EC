@@ -1,14 +1,15 @@
+import { Producto } from "src/modules/productos/entities/producto.entity";
 import { Proveedor } from "src/modules/proveedores/entities/proveedor.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('empresas')
-export class Empresa{
+export class Empresa {
 
-    @PrimaryGeneratedColumn({ name: 'id_empresa'})
+    @PrimaryGeneratedColumn({ name: 'id_empresa' })
     id: number;
 
     @Column()
-    nombre:string;
+    nombre: string;
 
     @Column({ nullable: true })
     descripcion: string;
@@ -31,4 +32,8 @@ export class Empresa{
     @ManyToOne(() => Proveedor, proveedor => proveedor.empresas)
     @JoinColumn({ name: 'id_proveedor' })
     proveedor: Proveedor;
+
+    @OneToMany(() => Producto, producto => producto.empresa)
+    @JoinColumn({ name: 'id_producto' })
+    productos: Producto[];
 }
