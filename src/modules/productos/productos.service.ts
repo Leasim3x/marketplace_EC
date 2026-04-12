@@ -51,11 +51,21 @@ export class ProductosService {
 
     }
 
-    async listarProductos() {
+    async listarActivos() {
 
         return this.productoRepository.find({
 
             where: { activo: true },
+            relations: ['empresa']
+        });
+
+    }
+
+    async listarDesactivados(){
+
+        return this.productoRepository.find({
+
+            where: { activo: false },
             relations: ['empresa']
         });
 
@@ -99,7 +109,17 @@ export class ProductosService {
         return this.productoRepository.save(producto);
     }
 
-    async eliminarProducto(id: number) {
+    async activarProducto(id: number) {
+
+        const producto = await this.obtenerProducto(id);
+
+        producto.activo = true;
+
+        return this.productoRepository.save(producto);
+
+    }
+
+    async desactivarProducto(id: number) {
 
         const producto = await this.obtenerProducto(id);
 
