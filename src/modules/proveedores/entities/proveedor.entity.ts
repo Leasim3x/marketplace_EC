@@ -1,5 +1,6 @@
 import { Empresa } from 'src/modules/empresas/entities/empresa.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Usuario } from 'src/modules/usuarios/entities/usuario.entity';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('proveedores')
 export class Proveedor {
@@ -27,6 +28,10 @@ export class Proveedor {
 
     @Column({ default: true })
     activo: boolean;
+
+    @OneToOne(() => Usuario, (usuario) => usuario.proveedor)
+    @JoinColumn({ name: 'id_usuario' })
+    usuario: Usuario;
 
     @OneToMany(() => Empresa, empresa => empresa.proveedor)
     @JoinColumn({ name: 'id_empresa' })

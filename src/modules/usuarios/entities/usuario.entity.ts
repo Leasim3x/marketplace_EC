@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Cliente } from 'src/modules/clientes/entities/cliente.entity';
+import { Proveedor } from 'src/modules/proveedores/entities/proveedor.entity';
+import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('usuarios')
 export class Usuario {
@@ -7,6 +9,15 @@ export class Usuario {
 
     @Column()
     nombre: string;
+
+    @Column({ name: 'apellido_paterno' })
+    apellidoPaterno: string;
+
+    @Column({ name: 'apellido_materno', nullable: true })
+    apellidoMaterno: string;
+
+    @Column({ type: 'date', name: 'fecha_nacimiento', nullable: true })
+    fechaNacimiento: Date;
 
     @Column({ unique: true })
     email: string;
@@ -26,5 +37,11 @@ export class Usuario {
 
     @Column({ default: true })
     activo: boolean;
+
+    @OneToOne(() => Cliente, (cliente) => cliente.usuario)
+    cliente: Cliente;
+
+    @OneToOne(() => Proveedor, (proveedor) => proveedor.usuario)
+    proveedor: Proveedor;
 
 }
