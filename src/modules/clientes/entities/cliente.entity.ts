@@ -16,6 +16,9 @@ export class Cliente {
     @CreateDateColumn({ name: 'fecha_registro' })
     fechaRegistro: Date;
 
+    @Column({ default: true })
+    activo: boolean;
+
     @OneToOne(() => Usuario, (usuario) => usuario.cliente)
     @JoinColumn({ name: 'id_usuario' })
     usuario: Usuario;
