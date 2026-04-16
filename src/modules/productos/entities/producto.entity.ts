@@ -1,5 +1,6 @@
 import { Empresa } from "src/modules/empresas/entities/empresa.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { OrdenItem } from "src/modules/orden_items/entities/orden-item.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('productos')
 export class Producto {
@@ -31,5 +32,8 @@ export class Producto {
     @ManyToOne(() => Empresa, empresa => empresa.productos)
     @JoinColumn({ name: 'id_empresa' })
     empresa: Empresa;
+
+    @OneToMany(() => OrdenItem, item => item.producto)
+    items: OrdenItem[];
 
 }
