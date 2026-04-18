@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, Delete, Query } from '@nestjs/common';
 
 import { ProveedoresService } from './proveedores.service';
 import { CrearProveedorDto } from './dto/crear-proveedor.dto';
@@ -12,10 +12,10 @@ export class ProveedoresController {
     constructor(private readonly proveedoresService: ProveedoresService) { }
 
     @Post()
-    crearProveedor(@Body() crearProveedorDto: CrearProveedorDto) {
-        // arreglar el error de datos nulos
+    crearProveedor(
+        @Body() crearProveedorDto: CrearProveedorDto,
+    ) {
         return this.proveedoresService.crearProveedor(crearProveedorDto);
-
     }
 
     @Get()

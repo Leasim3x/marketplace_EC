@@ -22,7 +22,14 @@ export class OrdenProveedor {
     @Column({
         type: 'enum',
         enum: EstadoOrdenProveedor,
-        default: EstadoOrdenProveedor.PENDIENTE
+        default: EstadoOrdenProveedor.PENDIENTE,
+        comment: `
+        pendiente: el proveedor ha recibido la orden pero no la ha procesado,
+        en_proceso: el proveedor está preparando el pedido,
+        enviado: el pedido ha sido despachado,
+        entregado: el pedido fue entregado al cliente,
+        cancelado: el proveedor canceló su parte de la orden
+        `
     })
     estado: EstadoOrdenProveedor;
 

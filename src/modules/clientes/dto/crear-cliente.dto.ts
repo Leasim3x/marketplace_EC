@@ -5,7 +5,7 @@ export class RegistrarClienteDto {
 
     @Type(() => Number)
     @IsNumber()
-    id_usuario: number;
+    idUsuario: number;
 
     @IsOptional()
     @IsString()

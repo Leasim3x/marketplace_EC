@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Proveedor } from './entities/proveedor.entity';
 import { CrearProveedorDto } from './dto/crear-proveedor.dto';
 import { ActualizarPerfilDto } from '../usuarios/dto/actualizar-perfil.dto';
+import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Injectable()
 export class ProveedoresService {
@@ -12,10 +13,38 @@ export class ProveedoresService {
     constructor(
         @InjectRepository(Proveedor)
         private proveedorRepository: Repository<Proveedor>,
+
+        // Acceso a la tabla de usuarios
+        @InjectRepository(Usuario)
+        private usuarioRepository: Repository<Usuario>,
+
     ) { }
 
     async crearProveedor(data: CrearProveedorDto): Promise<Proveedor> {
-        const proveedor = this.proveedorRepository.create(data);
+
+        const { idUsuario, ...datosRestantes } = data;
+
+        // 1. Validamos que el usuario exista
+        const usuario = await this.usuarioRepository.findOneBy({ id: idUsuario });
+
+        if(!usuario){
+            throw new NotFoundException('El usuario no existe');
+        }
+
+        // 2. Validamos que el usuario no tenga ya un proveedor (OneToOne)
+        const existe = await this.proveedorRepository.findOne({
+            where: { usuario: { id: idUsuario } }
+        });
+
+        if(existe){
+            throw new BadRequestException('Este usuario ya tiene perfil de proveedor')
+        }
+
+        // 3. Creamos y guardamos
+        const proveedor = this.proveedorRepository.create({
+            ...datosRestantes,
+            usuario // Vinculamos el objeto usuario completo
+        });
 
         return await this.proveedorRepository.save(proveedor);
 

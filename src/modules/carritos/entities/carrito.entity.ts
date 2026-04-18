@@ -15,7 +15,12 @@ export class Carrito {
         type: 'enum',
         enum: CarritoEstado,
         default: CarritoEstado.ACTIVO,
-        comment: 'activo: selección de productos, en proceso: pasarela de pago, abandonado: compra no concluida'
+        comment: `
+        activo: el cliente está agregando productos,
+        en_proceso: el cliente inició el checkout,
+        abandonado: el cliente no finalizó la compra,
+        convertido: el carrito fue transformado en una orden
+        `
     })
     estado: CarritoEstado;
 

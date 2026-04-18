@@ -34,7 +34,6 @@ export class Proveedor {
     usuario: Usuario;
 
     @OneToMany(() => Empresa, empresa => empresa.proveedor)
-    @JoinColumn({ name: 'id_empresa' })
     empresas: Empresa[];
 
 }

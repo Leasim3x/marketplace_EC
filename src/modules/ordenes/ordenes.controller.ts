@@ -3,6 +3,7 @@ import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs
 import { OrdenesService } from './ordenes.service';
 import { CrearOrdenDto } from './dto/crear-orden.dto';
 import { ActualizarEstadoOrdenDto } from './dto/actualizar-estado-orden.dto';
+import { EstadoOrden } from './enums/orden-status.enum';
 
 @Controller('ordenes')
 export class OrdenesController {
@@ -32,7 +33,28 @@ export class OrdenesController {
 
     }
 
-    @Patch('estado/:id')
+    @Get('cliente/:id')
+    obtenerPorCliente(@Param('id', ParseIntPipe) id: number){
+
+        return this.ordenesService.obtenerPorCliente(id);
+
+    }
+
+    @Get('proveedor/:id')
+    obtenerPorProveedor(@Param('id', ParseIntPipe) id: number){
+
+        return this.ordenesService.obtenerPorProveedor(id);
+
+    }
+
+    @Get('estado/:status')
+    obtenerPorEstado(@Param('status') status: EstadoOrden) {
+
+        return this.ordenesService.obtenerPorEstado(status);
+        
+    }
+
+    @Patch(':id/estado')
     actualizarEstado(
         @Param('id', ParseIntPipe) id: number,
         @Body() data: ActualizarEstadoOrdenDto

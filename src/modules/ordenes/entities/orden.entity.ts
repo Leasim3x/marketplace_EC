@@ -9,7 +9,7 @@ export class Orden {
 
     @PrimaryGeneratedColumn({ name: 'id_orden' })
     id: number;
-    
+
     @Column({
         type: 'decimal',
         precision: 10,
@@ -18,13 +18,20 @@ export class Orden {
     })
     total: number;
 
-    @CreateDateColumn({ name:'fecha_creacion' })
+    @CreateDateColumn({ name: 'fecha_creacion' })
     fecha: Date;
 
     @Column({
         type: 'enum',
         enum: EstadoOrden,
-        default: EstadoOrden.PENDIENTE
+        default: EstadoOrden.PENDIENTE,
+        comment: `
+        pendiente: orden creada pero aún no procesada,
+        en_proceso: al menos un proveedor está trabajando en la orden,
+        parcial: uno o más proveedores han sido cancelados pero otros siguen activos,
+        completado: todos los proveedores han completado la orden,
+        cancelado: todos los proveedores han sido cancelados
+        `
     })
     estado: EstadoOrden;
 
