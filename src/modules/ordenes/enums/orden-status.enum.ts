@@ -1,7 +1,7 @@
 export enum EstadoOrden {
     PENDIENTE = 'pendiente',
-    PAGADO = 'pagado',
-    ENVIADO = 'enviado',
+    EN_PROCESO = 'en_proceso',
+    PARCIAL = 'parcial',
+    COMPLETADO = 'completado',
     CANCELADO = 'cancelado',
-    PARCIAL = 'parcial'
 }

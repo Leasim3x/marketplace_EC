@@ -175,6 +175,84 @@ export class OrdenesService {
 
     }
 
+    async obtenerPorCliente(idCliente: number) {
+
+        const ordenes = await this.ordenRepository.find({
+            where: {
+                cliente: { id: idCliente }
+            },
+            relations: [
+                'cliente',
+                'ordenesProveedor',
+                'ordenesProveedor.proveedor',
+                'ordenesProveedor.items',
+                'ordenesProveedor.items.producto',
+            ],
+            order: {
+                fecha: 'DESC'
+            }
+        });
+
+        if (!ordenes || ordenes.length === 0) {
+            throw new NotFoundException('No se encontraron órdenes para este cliente');
+        }
+
+        return ordenes;
+
+    }
+
+    async obtenerPorProveedor(id: number) {
+
+        const ordenes = await this.ordenRepository.find({
+            where: {
+                ordenesProveedor: {
+                    proveedor: { id: id }
+                }
+            },
+            relations: [
+                'cliente',
+                'ordenesProveedor',
+                'ordenesProveedor.proveedor',
+                'ordenesProveedor.items',
+                'ordenesProveedor.items.producto',
+            ],
+            order: { fecha: 'DESC' }
+        });
+
+        if (!ordenes || ordenes.length === 0) {
+            throw new NotFoundException('No se encontraron órdenes para este proveedor')
+        }
+
+        return ordenes;
+
+    }
+
+    async obtenerPorEstado(estado: EstadoOrden) {
+
+        const ordenes = await this.ordenRepository.find({
+            where: { estado },
+            relations: [
+                'cliente',
+                'ordenesProveedor',
+                'ordenesProveedor.proveedor',
+                'ordenesProveedor.items',
+                'ordenesProveedor.items.producto'
+            ],
+            // Lógica condicional: si es pendiete, las más viejas primero
+            order: {
+                fecha: estado === EstadoOrden.PENDIENTE ? 'ASC' : 'DESC'
+            }
+        });
+
+        if (ordenes.length === 0) {
+            throw new NotFoundException(`No se encontraron órdenes en estado: ${estado}`);
+        }
+
+        return ordenes;
+
+    }
+
+
     async actualizarEstado(id: number, estado: EstadoOrden) {
 
         const orden = await this.ordenRepository.findOne({
@@ -189,6 +267,40 @@ export class OrdenesService {
 
         return this.ordenRepository.save(orden);
 
+    }
+
+    private async cancelarOrdenProveedorInterno(
+        ordenProveedor: OrdenProveedor
+    ) {
+
+        if (ordenProveedor.estado === EstadoOrdenProveedor.CANCELADO) {
+            return;
+        }
+
+        if (ordenProveedor.estado === EstadoOrdenProveedor.ENVIADO) {
+            throw new BadRequestException(
+                `Proveedor ${ordenProveedor.id} ya envió el pedido`
+            );
+        }
+
+        // Devolver stock
+        for (const item of ordenProveedor.items) {
+
+            const producto = item.producto;
+
+            producto.stock += item.cantidad;
+
+            if (producto.stock > 0) {
+                producto.activo = true;
+            }
+
+            await this.productoRepository.save(producto);
+        }
+
+        // Cambiar estado
+        ordenProveedor.estado = EstadoOrdenProveedor.CANCELADO;
+
+        return ordenProveedor;
     }
 
     async cancelarOrden(id: number) {
@@ -208,34 +320,25 @@ export class OrdenesService {
 
         if (
             orden.estado === EstadoOrden.CANCELADO ||
-            orden.estado === EstadoOrden.ENVIADO
+            orden.estado === EstadoOrden.COMPLETADO
         ) {
             throw new BadRequestException('No se puede cancelar esta orden');
         }
 
-        // Devolver stock
+        // Cancelar todos SIN volver a consultar DB
         for (const op of orden.ordenesProveedor) {
-            for (const item of op.items) {
-                const producto = item.producto;
-
-                producto.stock += item.cantidad;
-
-                // Reactivar si vuelve a tener stock
-                if (producto.stock > 0) {
-                    producto.activo = true;
-                }
-
-                await this.productoRepository.save(producto);
-
-            }
-
+            await this.cancelarOrdenProveedorInterno(op);
         }
 
-        // Cambiar estato
-        orden.estado = EstadoOrden.CANCELADO;
+        // Guardar todos juntos
+        await this.ordenProveedorRepository.save(orden.ordenesProveedor);
 
-        return this.ordenRepository.save(orden);
+        // Recalcular UNA sola vez
+        await this.recalcularOrden(orden.id);
 
+        return {
+            mensaje: 'Orden cancelada completamente'
+        };
     }
 
     async cancelarOrdenProveedor(id: number) {
@@ -251,81 +354,68 @@ export class OrdenesService {
         });
 
         if (!ordenProveedor) {
-            throw new NotFoundException('OrdendProveedor no encontrada');
+            throw new NotFoundException('OrdenProveedor no encontrada');
         }
 
-        if (ordenProveedor.estado === EstadoOrdenProveedor.CANCELADO) {
-            throw new BadRequestException('Ya esta cancelado');
+        if (
+            ordenProveedor.orden.estado === EstadoOrden.CANCELADO ||
+            ordenProveedor.orden.estado === EstadoOrden.COMPLETADO) {
+                throw new BadRequestException('No se puede cancelar la orden');
         }
 
-        // Evita cancelar si ya fue enviado
-        if (ordenProveedor.estado === EstadoOrdenProveedor.ENVIADO) {
-            throw new BadRequestException('No se puede cancelar un envío realizado');
+        if(ordenProveedor.estado === EstadoOrdenProveedor.CANCELADO){
+            throw new BadRequestException('El proveedor no puede volver a cancelar la orden');
         }
 
-        // Devuelve el stock solo en este proveedor
-        for (const item of ordenProveedor.items) {
+        await this.cancelarOrdenProveedorInterno(ordenProveedor);
 
-            const producto = item.producto;
-
-            producto.stock += item.cantidad;
-
-            if (producto.stock > 0) {
-                producto.activo = true;
-            }
-
-            await this.productoRepository.save(producto);
-
-        }
-
-        // Cambiar el estado del proveedor
-        ordenProveedor.estado = EstadoOrdenProveedor.CANCELADO;
         await this.ordenProveedorRepository.save(ordenProveedor);
 
-        // Recalcular estado de la orden
-        const ordenActualizada = await this.ordenRepository.findOne({
-            where: { id: ordenProveedor.orden.id },
-            relations: ['ordenesProveedor']
-        });
-
-        if (!ordenActualizada) {
-            throw new NotFoundException('Orden no encontrada');
-        }
-
-        const proveedores = ordenActualizada.ordenesProveedor;
-
-        const todosCancelados = proveedores.every(
-            p => p.estado === EstadoOrdenProveedor.CANCELADO
-        );
-
-        const algunoCancelado = proveedores.some(
-            p => p.estado === EstadoOrdenProveedor.CANCELADO
-        );
-
-        // Actualizar estado de la orden
-        if (todosCancelados) {
-            ordenActualizada.estado = EstadoOrden.CANCELADO;
-        } else if (algunoCancelado) {
-            ordenActualizada.estado = EstadoOrden.PARCIAL;
-        }
-
-        // Recalcular total
-        let nuevoTotal = 0;
-
-        for (const p of proveedores) {
-            if (p.estado !== EstadoOrdenProveedor.CANCELADO) {
-                nuevoTotal += Number(p.subtotal);
-            }
-        }
-
-        ordenActualizada.total = nuevoTotal;
-
-        await this.ordenRepository.save(ordenActualizada);
+        await this.recalcularOrden(ordenProveedor.orden.id);
 
         return {
             mensaje: 'Proveedor cancelado correctamente',
             ordenProveedor
         };
+    }
 
+    private async recalcularOrden(idOrden: number) {
+
+        const orden = await this.ordenRepository.findOne({
+            where: { id: idOrden },
+            relations: ['ordenesProveedor']
+        });
+
+        if (!orden) return;
+
+        const proveedores = orden.ordenesProveedor;
+
+        const todosCancelados = proveedores.every(
+            p => p.estado === EstadoOrdenProveedor.CANCELADO
+        );
+
+        const algunosCancelados = proveedores.some(
+            p => p.estado === EstadoOrdenProveedor.CANCELADO
+        );
+
+        if (todosCancelados) {
+            orden.estado = EstadoOrden.CANCELADO;
+        } else if (algunosCancelados) {
+            orden.estado = EstadoOrden.PARCIAL;
+        } else {
+            orden.estado = EstadoOrden.EN_PROCESO;
+        }
+
+        let total = 0;
+
+        for (const p of proveedores) {
+            if (p.estado !== EstadoOrdenProveedor.CANCELADO) {
+                total += Number(p.subtotal);
+            }
+        }
+
+        orden.total = total;
+
+        await this.ordenRepository.save(orden);
     }
 }

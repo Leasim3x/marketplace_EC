@@ -23,7 +23,7 @@ export class ClientesService {
     async registrarCliente(data: RegistrarClienteDto) {
 
         const usuario = await this.usuarioRepository.findOne({
-            where: { id: data.id_usuario }
+            where: { id: data.idUsuario }
         });
 
         if (!usuario) {
@@ -31,7 +31,7 @@ export class ClientesService {
         }
 
         const clienteExistente = await this.clienteRepository.findOne({
-            where: { usuario: { id: data.id_usuario } }
+            where: { usuario: { id: data.idUsuario } }
         });
 
         if (clienteExistente) {

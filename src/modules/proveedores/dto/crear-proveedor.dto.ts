@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CrearProveedorDto {
 
@@ -19,5 +19,8 @@ export class CrearProveedorDto {
     @IsOptional()
     @IsString()
     logoUrl?: string;
+
+    @IsNumber()
+    idUsuario: number;
 
 }

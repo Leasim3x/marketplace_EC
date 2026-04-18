@@ -34,6 +34,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
+        dropSchema: false,
       }),
     }),
     UsuariosModule,
