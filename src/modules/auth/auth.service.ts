@@ -2,12 +2,16 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { UsuariosService } from '../usuarios/usuarios.service';
 
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
 
     constructor(
-        private readonly usuariosService: UsuariosService
+        private readonly usuariosService: UsuariosService,
+
+        private readonly jwtService: JwtService
+
     ) { }
 
     async login(email: string, password: string) {
@@ -24,12 +28,14 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
+        const payload = {
+            sub: usuario.id,
+            email: usuario.email
+        };
+
         return {
-            mensaje: 'Login correcto',
-            usuario: {
-                id: usuario.id,
-                email: usuario.email
-            }
+            access_token: this.jwtService.sign(payload)
         };
     }
+    
 }
