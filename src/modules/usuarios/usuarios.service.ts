@@ -7,6 +7,8 @@ import { RegistrarUsuarioDto } from './dto/registrar-usuario.dto';
 import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto';
 import { CambiarPasswordDto } from './dto/cambiar-password.dto';
 
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class UsuariosService {
     // Aplicación anterior de un constructor
@@ -16,7 +18,15 @@ export class UsuariosService {
     ) { }
 
     async registrarUsuario(data: RegistrarUsuarioDto) {
-        const usuario = this.usuarioRepository.create(data);
+
+        const saltRounds = 10;
+
+        const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+
+        const usuario = this.usuarioRepository.create({
+            ...data,
+            password: hashedPassword
+        });
 
         return this.usuarioRepository.save(usuario);
     }
@@ -29,6 +39,15 @@ export class UsuariosService {
         if (!usuario) {
             throw new NotFoundException('Usuario no encontrado');
         }
+
+        return usuario;
+    }
+
+    async buscarPorEMail(email: string) {
+        
+        const usuario = await this.usuarioRepository.findOne({
+            where: { email }
+        });
 
         return usuario;
     }

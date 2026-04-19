@@ -16,6 +16,7 @@ import { PagosModule } from './modules/pagos/pagos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     OrdenItemsModule,
     OrdenProveedoresModule,
     PagosModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
